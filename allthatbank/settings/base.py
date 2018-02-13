@@ -34,7 +34,6 @@ def get_secret(setting, secrets=secrets):
         error_msg = 'Set the {} environment variable'.format(setting)
         raise ImproperlyConfigured(error_msg)
 
-
 SECRET_KEY = get_secret('SECRET_KEY')
 LOCAL_DB_PASSWORD = get_secret('LOCAL_DB_PASSWORD')
 FSS_AUTHENTICATION_KEY = get_secret('FSS_AUTHENTICATION_KEY')
@@ -131,9 +130,9 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/2.0/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'ko-kr'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Seoul'
 
 USE_I18N = True
 
