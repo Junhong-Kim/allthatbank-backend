@@ -36,9 +36,10 @@ def get_secret(setting, secrets=secrets):
 
 
 SECRET_KEY = get_secret('SECRET_KEY')
+LOCAL_DB_PASSWORD = get_secret('LOCAL_DB_PASSWORD')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+# DEBUG = True
 
 ALLOWED_HOSTS = []
 
@@ -88,12 +89,12 @@ WSGI_APPLICATION = 'allthatbank.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/2.0/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, '../../db.sqlite3'),
-    }
-}
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': os.path.join(BASE_DIR, '../../db.sqlite3'),
+#     }
+# }
 
 
 # Password validation
