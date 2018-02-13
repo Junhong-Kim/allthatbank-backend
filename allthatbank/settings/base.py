@@ -37,6 +37,10 @@ def get_secret(setting, secrets=secrets):
 
 SECRET_KEY = get_secret('SECRET_KEY')
 LOCAL_DB_PASSWORD = get_secret('LOCAL_DB_PASSWORD')
+FSS_AUTHENTICATION_KEY = get_secret('FSS_AUTHENTICATION_KEY')
+
+# 금융상품 API
+SAVING_PRODUCTS_API = get_secret('SAVING_PRODUCTS_API')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 # DEBUG = True
@@ -53,7 +57,15 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'rest_framework',
+    'fss',
 ]
+
+REST_FRAMEWORK = {
+    'DEFAULT_RENDERER_CLASSES': (
+        'rest_framework.renderers.JSONRenderer',
+    )
+}
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
