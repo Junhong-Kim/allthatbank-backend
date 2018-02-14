@@ -19,4 +19,5 @@ from django.urls import include, path
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('fss/', include('fss.urls')),
+    path('saving_products/', include('saving.urls')),
 ]
