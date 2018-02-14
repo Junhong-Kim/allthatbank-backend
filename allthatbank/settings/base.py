@@ -34,6 +34,8 @@ def get_secret(setting, secrets=secrets):
         error_msg = 'Set the {} environment variable'.format(setting)
         raise ImproperlyConfigured(error_msg)
 
+
+# Secret variables
 SECRET_KEY = get_secret('SECRET_KEY')
 LOCAL_DB_PASSWORD = get_secret('LOCAL_DB_PASSWORD')
 FSS_AUTHENTICATION_KEY = get_secret('FSS_AUTHENTICATION_KEY')
@@ -58,6 +60,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'fss',
+    'saving',
 ]
 
 REST_FRAMEWORK = {
@@ -138,7 +141,7 @@ USE_I18N = True
 
 USE_L10N = True
 
-USE_TZ = True
+USE_TZ = False
 
 
 # Static files (CSS, JavaScript, Images)
