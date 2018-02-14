@@ -35,6 +35,8 @@ class SavingProductBase(models.Model):
     dcls_end_day = models.CharField(max_length=64, null=True)
     # 금융회사 제출일 [YYYYMMDDHH24MI]
     fin_co_subm_day = models.CharField(max_length=64)
+    # 권역 코드
+    top_fin_grp_no = models.CharField(max_length=64)
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

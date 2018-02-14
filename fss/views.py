@@ -32,7 +32,8 @@ def saving_products(request):
                               max_limit=saving_product_base['max_limit'],
                               dcls_strt_day=saving_product_base['dcls_strt_day'],
                               dcls_end_day=saving_product_base['dcls_end_day'],
-                              fin_co_subm_day=saving_product_base['fin_co_subm_day']).save()
+                              fin_co_subm_day=saving_product_base['fin_co_subm_day'],
+                              top_fin_grp_no=top_fin_grp_no).save()
 
         for saving_product_option in saving_products_option:
             print(saving_product_option)
