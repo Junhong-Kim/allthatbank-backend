@@ -52,11 +52,11 @@ class SavingProductOption(models.Model):
     fin_co_no = models.CharField(max_length=64)
     # 금융상품 코드 **
     fin_prdt_cd = models.CharField(max_length=64)
-    # 저축 금리 유형
+    # 저축 금리 유형 (S: 단리, M: 복리)
     intr_rate_type = models.CharField(max_length=64)
     # 저축 금리 유형명
     intr_rate_type_nm = models.CharField(max_length=64)
-    # 적립 유형
+    # 적립 유형 (S: 정액적립식, F: 자유적립식)
     rsrv_type = models.CharField(max_length=64)
     # 적립 유형명
     rsrv_type_nm = models.CharField(max_length=64)
