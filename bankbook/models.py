@@ -14,6 +14,8 @@ class Bankbook(models.Model):
     saving_product_base_id = models.ForeignKey(SavingProductBase, on_delete=models.CASCADE)
     # 적금상품 옵션 id
     saving_product_option_id = models.ForeignKey(SavingProductOption, on_delete=models.CASCADE)
+    # 계좌번호
+    account_number = models.CharField(max_length=64)
     # 납입 주기 (D: 매일, W: 매주, M: 매월)
     payment_period = models.CharField(max_length=64)
     # 납입 일 (null: 매일, W: 요일[MON|TUE|WED|THU|FRI], M: 일[1~31])
