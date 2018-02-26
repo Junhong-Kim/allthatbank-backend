@@ -61,6 +61,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'fss',
     'saving',
+    'user',
 ]
 
 REST_FRAMEWORK = {

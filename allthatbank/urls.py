@@ -20,4 +20,5 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('fss/', include('fss.urls')),
     path('saving_products/', include('saving.urls')),
+    path('users/', include('user.urls')),
 ]
