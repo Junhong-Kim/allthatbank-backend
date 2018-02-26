@@ -21,4 +21,5 @@ urlpatterns = [
     path('fss/', include('fss.urls')),
     path('saving_products/', include('saving.urls')),
     path('users/', include('user.urls')),
+    path('bankbooks/', include('bankbook.urls')),
 ]

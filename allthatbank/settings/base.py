@@ -62,6 +62,7 @@ INSTALLED_APPS = [
     'fss',
     'saving',
     'user',
+    'bankbook',
 ]
 
 REST_FRAMEWORK = {
