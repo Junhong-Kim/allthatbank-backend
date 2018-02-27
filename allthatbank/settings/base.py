@@ -63,6 +63,7 @@ INSTALLED_APPS = [
     'saving',
     'user',
     'bankbook',
+    'record',
 ]
 
 REST_FRAMEWORK = {

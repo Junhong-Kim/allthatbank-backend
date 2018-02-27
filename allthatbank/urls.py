@@ -22,4 +22,5 @@ urlpatterns = [
     path('saving_products/', include('saving.urls')),
     path('users/', include('user.urls')),
     path('bankbooks/', include('bankbook.urls')),
+    path('records/', include('record.urls')),
 ]
