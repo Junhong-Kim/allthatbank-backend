@@ -11,6 +11,16 @@ class RecordViewSet(viewsets.ModelViewSet):
     queryset = Record.objects.all()
     serializer_class = RecordSerializer
 
+    def get_queryset(self):
+        qs = super().get_queryset()
+
+        # 특정 통장 내역 가져오기
+        bankbook_id = self.request.query_params.get('bankbook_id', '')
+        if bankbook_id:
+            qs = qs.filter(bankbook_id=bankbook_id)
+
+        return qs
+
     # 통장 내역 생성
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
