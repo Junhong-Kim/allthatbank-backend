@@ -42,6 +42,7 @@ FSS_AUTHENTICATION_KEY = get_secret('FSS_AUTHENTICATION_KEY')
 
 # 금융상품 API
 SAVING_PRODUCTS_API = get_secret('SAVING_PRODUCTS_API')
+COMPANY_API = get_secret('COMPANY_API')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 # DEBUG = True
@@ -62,6 +63,7 @@ INSTALLED_APPS = [
     'fss',
     'saving',
     'user',
+    'company',
     'bankbook',
     'record',
 ]
