@@ -1,8 +1,9 @@
+from django.http import Http404
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from company.models import CompanyBase
-from company.serializers import CompanyBaseSerializer
+from company.models import CompanyBase, CompanyOption
+from company.serializers import CompanyBaseSerializer, CompanyOptionSerializer
 
 
 class CompanyList(APIView):
@@ -42,3 +43,29 @@ class CompanyList(APIView):
             data['company'] = serializer.data[start_index:end_index]
 
         return Response(data)
+
+
+class CompanyDetail(APIView):
+    def get(self, request, fin_co_no):
+        """
+        특정 금융회사 상세 정보
+        GET /company/{fin_co_no}
+        """
+        try:
+            data = {}
+
+            # 특정 금융회사 기본
+            company_base_queryset = CompanyBase.objects.get(fin_co_no=fin_co_no)
+            company_base_serializer = CompanyBaseSerializer(company_base_queryset)
+
+            # 특정 금융회사 옵션
+            company_option_queryset = CompanyOption.objects.all().filter(fin_co_no=fin_co_no)
+            company_option_serializer = CompanyOptionSerializer(company_option_queryset, many=True)
+
+            # 특정 적금상품 응답
+            data['company'] = company_base_serializer.data
+            data['company']['options'] = company_option_serializer.data
+
+            return Response(data)
+        except CompanyBase.DoesNotExist:
+            raise Http404
