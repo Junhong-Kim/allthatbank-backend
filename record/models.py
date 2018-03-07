@@ -9,9 +9,9 @@ class Record(models.Model):
         db_table = 'records'
 
     # 사용자 id
-    user_id = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
     # 통장 id
-    bankbook_id = models.ForeignKey(Bankbook, on_delete=models.CASCADE)
+    bankbook = models.ForeignKey(Bankbook, on_delete=models.CASCADE)
     # 타입 (D: 입금, W: 출금)
     type = models.CharField(max_length=32)
     # 금액

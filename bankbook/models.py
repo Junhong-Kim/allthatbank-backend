@@ -9,11 +9,11 @@ class Bankbook(models.Model):
         db_table = 'bankbooks'
 
     # 사용자 id
-    user_id = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
     # 적금상품 기본 id
-    saving_product_base_id = models.ForeignKey(SavingProductBase, on_delete=models.CASCADE)
+    saving_product_base = models.ForeignKey(SavingProductBase, on_delete=models.CASCADE)
     # 적금상품 옵션 id
-    saving_product_option_id = models.ForeignKey(SavingProductOption, on_delete=models.CASCADE)
+    saving_product_option = models.ForeignKey(SavingProductOption, on_delete=models.CASCADE)
     # 계좌번호
     account_number = models.CharField(max_length=64)
     # 납입 주기 (D: 매일, W: 매주, M: 매월)
