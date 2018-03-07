@@ -107,6 +107,7 @@ class SavingProductSearch(APIView):
 
         # 쿼리
         fin_prdt_nm = request.query_params.get('fin_prdt_nm')
+        fin_co_no = request.query_params.getlist('fin_co_no')
         intr_rate_type = request.query_params.get('intr_rate_type')
         rsrv_type = request.query_params.get('rsrv_type')
         save_trm = request.query_params.get('save_trm')
@@ -139,22 +140,30 @@ class SavingProductSearch(APIView):
         # 상품옵션으로 검색
         else:
             """
-            저축금리유형, 적립유형, 저축기간, 저축금리, 최고우대금리
-            GET /saving_products/search?intr_rate_type=&rsrv_type=&save_trm=&intr_rate=&intr_rate2=
+            금융회사코드, 저축금리유형, 적립유형, 저축기간, 저축금리, 최고우대금리
+            GET /saving_products/search?fin_co_no=&intr_rate_type=&rsrv_type=&save_trm=&intr_rate=&intr_rate2=
             """
-            if intr_rate_type is None:
-                intr_rate_type = Q(intr_rate_type='S') | Q(intr_rate_type='M')
-            else:
-                intr_rate_type = Q(intr_rate_type=intr_rate_type)
+            # 금융회사코드
+            q_fin_co_no = Q()
+            for f in fin_co_no:
+                q_fin_co_no |= Q(fin_co_no=f)
 
-            if rsrv_type is None:
-                rsrv_type = Q(rsrv_type='S') | Q(rsrv_type='F')
+            # 저축금리유형
+            if intr_rate_type is None:
+                q_intr_rate_type = Q()
             else:
-                rsrv_type = Q(rsrv_type=rsrv_type)
+                q_intr_rate_type = Q(intr_rate_type=intr_rate_type)
+
+            # 적립유형
+            if rsrv_type is None:
+                q_rsrv_type = Q()
+            else:
+                q_rsrv_type = Q(rsrv_type=rsrv_type)
 
             # 검색된 적금상품 옵션
-            qs = SavingProductOption.objects.all().filter(intr_rate_type,
-                                                          rsrv_type,
+            qs = SavingProductOption.objects.all().filter(q_fin_co_no,
+                                                          q_intr_rate_type,
+                                                          q_rsrv_type,
                                                           save_trm=save_trm,
                                                           intr_rate__gte=intr_rate,
                                                           intr_rate2__gte=intr_rate2)
