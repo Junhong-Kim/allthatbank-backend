@@ -3,7 +3,7 @@ from django.db import models
 
 class SavingProductBase(models.Model):
     class Meta:
-        db_table = 'saving_product_base'
+        db_table = 'saving_products_base'
 
     # 공시 제출월 [YYYYMM] **
     dcls_month = models.CharField(max_length=64)
@@ -44,7 +44,7 @@ class SavingProductBase(models.Model):
 
 class SavingProductOption(models.Model):
     class Meta:
-        db_table = 'saving_product_option'
+        db_table = 'saving_products_option'
 
     # 공시 제출월 [YYYYMM] **
     dcls_month = models.CharField(max_length=64)
