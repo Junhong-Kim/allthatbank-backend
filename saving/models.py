@@ -1,5 +1,7 @@
 from django.db import models
 
+from user.models import User
+
 
 class SavingProductBase(models.Model):
     class Meta:
@@ -71,3 +73,14 @@ class SavingProductOption(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
 
+class SavingProductBookmark(models.Model):
+    class Meta:
+        db_table = 'saving_products_bookmark'
+
+    # 사용자 id
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    # 적금상품 기본 id
+    saving_product_base = models.ForeignKey(SavingProductBase, on_delete=models.CASCADE)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
