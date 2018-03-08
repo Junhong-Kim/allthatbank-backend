@@ -15,12 +15,16 @@ def saving_products(request):
         page_no = request.query_params.get('pageNo', '1')
 
         response = services.get_saving_products(top_fin_grp_no, page_no).json()
+        max_page_no = int(response['result']['max_page_no']) + 1
 
-        saving_products_base = response['result']['baseList']
-        saving_products_option = response['result']['optionList']
+        for now_page_no in range(1, max_page_no):
+            response = services.get_saving_products(top_fin_grp_no, now_page_no).json()
 
-        Process(target=saving_products_base_process, args=(saving_products_base, top_fin_grp_no)).start()
-        Process(target=saving_products_option_process, args=(saving_products_option,)).start()
+            saving_products_base = response['result']['baseList']
+            saving_products_option = response['result']['optionList']
+
+            Process(target=saving_products_base_process, args=(saving_products_base, top_fin_grp_no)).start()
+            Process(target=saving_products_option_process, args=(saving_products_option,)).start()
 
         return Response(response)
 
