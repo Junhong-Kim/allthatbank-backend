@@ -2,11 +2,12 @@ import math
 
 from django.db.models import Q
 from django.http import Http404
+from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from saving.models import SavingProductBase, SavingProductOption
-from saving.serializers import SavingProductBaseSerializer, SavingProductOptionSerializer
+from saving.models import SavingProductBase, SavingProductOption, SavingProductBookmark
+from saving.serializers import SavingProductBaseSerializer, SavingProductOptionSerializer, SavingProductBookmarkSerializer
 
 
 class SavingProductList(APIView):
@@ -195,3 +196,41 @@ class SavingProductSearch(APIView):
                 data['products'].append(new_dict)
 
             return Response(data)
+
+
+class SavingProductBookmarkList(APIView):
+    def get(self, request):
+        qs = SavingProductBookmark.objects.all()
+
+        # 특정 사용자 적금북마크 가져오기
+        user_id = request.query_params.get('user_id')
+        if user_id:
+            qs = qs.filter(user_id=user_id)
+
+        serializer = SavingProductBookmarkSerializer(qs, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        serializer = SavingProductBookmarkSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class SavingProductBookmarkDetail(APIView):
+    def get_object(self, pk):
+        try:
+            return SavingProductBookmark.objects.get(pk=pk)
+        except SavingProductBookmark.DoesNotExist:
+            raise Http404
+
+    def get(self, request, pk):
+        bookmark = self.get_object(pk)
+        serializer = SavingProductBookmarkSerializer(bookmark)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def delete(self, request, pk):
+        bookmark = self.get_object(pk)
+        bookmark.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)

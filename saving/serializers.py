@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import SavingProductBase, SavingProductOption
+from .models import SavingProductBase, SavingProductOption, SavingProductBookmark
 
 
 class SavingProductBaseSerializer(serializers.ModelSerializer):
@@ -11,4 +11,10 @@ class SavingProductBaseSerializer(serializers.ModelSerializer):
 class SavingProductOptionSerializer(serializers.ModelSerializer):
     class Meta:
         model = SavingProductOption
+        fields = '__all__'
+
+
+class SavingProductBookmarkSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SavingProductBookmark
         fields = '__all__'
