@@ -30,7 +30,7 @@ class SavingProductBase(models.Model):
     # 기타 유의사항
     etc_note = models.CharField(max_length=256)
     # 최고한도
-    max_limit = models.IntegerField(null=True)
+    max_limit = models.BigIntegerField(null=True)
     # 공시 시작일
     dcls_strt_day = models.CharField(max_length=64)
     # 공시 종료일
