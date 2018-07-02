@@ -2,6 +2,7 @@ from django.http import Http404
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from common.response import response_data
 from company.models import CompanyBase, CompanyOption
 from company.serializers import CompanyBaseSerializer, CompanyOptionSerializer
 
@@ -28,11 +29,10 @@ class CompanyList(APIView):
             특정 권역 코드의 금융회사 리스트
             GET /company?top_fin_grp_no=&offset=&limit=
             """
-            qs = company_base_queryset.filter(top_fin_grp_no=top_fin_grp_no)
+            qs = company_base_queryset.filter(top_fin_grp_no=top_fin_grp_no).order_by('kor_co_nm')
             serializer = CompanyBaseSerializer(qs, many=True)
 
-            data['company'] = serializer.data[start_index:end_index]
-
+            data = serializer.data[start_index:end_index]
         else:
             """
             전체 금융회사 리스트
@@ -40,9 +40,8 @@ class CompanyList(APIView):
             """
             serializer = CompanyBaseSerializer(company_base_queryset, many=True)
 
-            data['company'] = serializer.data[start_index:end_index]
-
-        return Response(data)
+            data = serializer.data[start_index:end_index]
+        return Response(response_data(True, data))
 
 
 class CompanyDetail(APIView):
