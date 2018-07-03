@@ -6,6 +6,8 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from common.response import response_data
+from company.models import CompanyBase
 from saving.models import SavingProductBase, SavingProductOption, SavingProductBookmark
 from saving.serializers import SavingProductBaseSerializer, SavingProductOptionSerializer, SavingProductBookmarkSerializer
 
@@ -35,37 +37,103 @@ class SavingProductList(APIView):
             """
             qs = saving_products_base_queryset.filter(top_fin_grp_no=top_fin_grp_no)
             serializer = SavingProductBaseSerializer(qs, many=True)
-
-            data['products'] = serializer.data[start_index:end_index]
-
+            data = serializer.data[start_index:end_index]
         elif fin_co_no:
             """
             특정 금융회사 코드의 적금상품 리스트
-            GET /saving_products?fin_co_no=&offset=&limit=
+            GET /saving_products?fin_co_no=&fin_co_no=offset=&limit=
             """
-            qs = saving_products_base_queryset.filter(fin_co_no=fin_co_no)
-            serializer = SavingProductBaseSerializer(qs, many=True)
+            data = []
+            fin_co_nos = request.query_params.getlist('fin_co_no')
+            for fin_co_no in fin_co_nos:
+                qs = saving_products_base_queryset.filter(fin_co_no=fin_co_no)
+                serializer = SavingProductBaseSerializer(qs, many=True)
+                data += serializer.data
+            data = data[start_index:end_index]
 
-            data['products'] = serializer.data[start_index:end_index]
+            # 적금상품 옵션
+            for product in data:
+                fin_prdt_cd = product['fin_prdt_cd']
+                saving_product_option_queryset = SavingProductOption.objects.all().filter(fin_prdt_cd=fin_prdt_cd)
+                saving_product_option_serializer = SavingProductOptionSerializer(saving_product_option_queryset,
+                                                                                 many=True)
+                product['options'] = saving_product_option_serializer.data
 
+            products = []
+            for product in data:
+                company = CompanyBase.objects.get(fin_co_no=product['fin_co_no'])
+                options = product['options']
+                options_data = self.set_options_data(options)
+
+                product_data = {
+                    'id': product['fin_prdt_cd'],
+                    'bank_logo': 'logo.png',
+                    'bank_name': company.kor_co_nm,
+                    'join_way': product['join_way'],
+                    'product_name': product['fin_prdt_nm'],
+                    'basic_rate_min': options_data['basic_rate']['min'],
+                    'basic_rate_max': options_data['basic_rate']['max'],
+                    'prime_rate_min': options_data['prime_rate']['min'],
+                    'prime_rate_max': options_data['prime_rate']['max'],
+                    'months_06': '6' in options_data['save_trm'],
+                    'months_12': '12' in options_data['save_trm'],
+                    'months_24': '24' in options_data['save_trm'],
+                    'months_36': '36' in options_data['save_trm'],
+                    'rate_type_s': 'S' in options_data['rate_type'],
+                    'rate_type_m': 'M' in options_data['rate_type'],
+                    'rsrv_type_s': 'S' in options_data['rsrv_type'],
+                    'rsrv_type_f': 'F' in options_data['rsrv_type'],
+                    'join_deny': product['join_deny'],
+                    'join_member': product['join_member']
+                }
+                products.append(product_data)
+            return Response(response_data(True, products))
         else:
             """
             전체 적금상품 리스트
             GET /saving_products?offset=&limit=
             """
             serializer = SavingProductBaseSerializer(saving_products_base_queryset, many=True)
-
-            data['products'] = serializer.data[start_index:end_index]
+            data = serializer.data[start_index:end_index]
 
         # 적금상품 옵션
-        for product in data['products']:
+        for product in data:
             fin_prdt_cd = product['fin_prdt_cd']
             saving_product_option_queryset = SavingProductOption.objects.all().filter(fin_prdt_cd=fin_prdt_cd)
             saving_product_option_serializer = SavingProductOptionSerializer(saving_product_option_queryset, many=True)
 
             product['options'] = saving_product_option_serializer.data
 
-        return Response(data)
+        return Response(response_data(True, data))
+
+    def set_options_data(self, options):
+        option_data = {
+            'basic_rate': {},
+            'prime_rate': {},
+            'save_trm': set(),
+            'rate_type': set(),
+            'rsrv_type': set()
+        }
+
+        basic_rates = []
+        prime_rates = []
+
+        for option in options:
+            basic_rates.append(option['intr_rate'])
+            prime_rates.append(option['intr_rate2'])
+            option_data['save_trm'].add(option['save_trm'])
+            option_data['rate_type'].add(option['intr_rate_type'])
+            option_data['rsrv_type'].add(option['rsrv_type'])
+
+        basic_rates = [str(basic_rate) for basic_rate in sorted(basic_rates)]
+        prime_rates = [str(prime_rate) for prime_rate in sorted(prime_rates)]
+
+        option_data['basic_rate']['min'] = basic_rates[0]
+        option_data['basic_rate']['max'] = basic_rates[-1]
+        option_data['prime_rate']['min'] = prime_rates[0]
+        option_data['prime_rate']['max'] = prime_rates[-1]
+
+        return option_data
 
 
 class SavingProductDetail(APIView):
