@@ -125,13 +125,23 @@ class SavingProductList(APIView):
             option_data['rate_type'].add(option['intr_rate_type'])
             option_data['rsrv_type'].add(option['rsrv_type'])
 
-        basic_rates = [str(basic_rate) for basic_rate in sorted(basic_rates)]
-        prime_rates = [str(prime_rate) for prime_rate in sorted(prime_rates)]
+        # 기본금리가 null 값인 경우 0으로 초기화
+        for (index, basic_rate) in enumerate(basic_rates):
+            if basic_rate is None:
+                basic_rates[index] = 0
 
-        option_data['basic_rate']['min'] = basic_rates[0]
-        option_data['basic_rate']['max'] = basic_rates[-1]
-        option_data['prime_rate']['min'] = prime_rates[0]
-        option_data['prime_rate']['max'] = prime_rates[-1]
+        # 우대금리가 null 값인 경우 0으로 초기화
+        for (index, prime_rate) in enumerate(prime_rates):
+            if prime_rate is None:
+                prime_rates[index] = 0
+
+        basic_rates = sorted(basic_rates, key=float)
+        prime_rates = sorted(prime_rates, key=float)
+
+        option_data['basic_rate']['min'] = basic_rates[-1] if basic_rates[0] == 0 else basic_rates[0]
+        option_data['basic_rate']['max'] = basic_rates[0] if basic_rates[-1] == 0 else basic_rates[-1]
+        option_data['prime_rate']['min'] = prime_rates[-1] if prime_rates[0] == 0 else prime_rates[0]
+        option_data['prime_rate']['max'] = prime_rates[0] if prime_rates[-1] == 0 else prime_rates[-1]
 
         return option_data
 
