@@ -12,7 +12,48 @@ from saving.models import SavingProductBase, SavingProductOption, SavingProductB
 from saving.serializers import SavingProductBaseSerializer, SavingProductOptionSerializer, SavingProductBookmarkSerializer
 
 
-class SavingProductList(APIView):
+class SavingProduct(object):
+    def set_options_data(self, options):
+        option_data = {
+            'basic_rate': {},
+            'prime_rate': {},
+            'save_trm': set(),
+            'rate_type': set(),
+            'rsrv_type': set()
+        }
+
+        basic_rates = []
+        prime_rates = []
+
+        for option in options:
+            basic_rates.append(option['intr_rate'])
+            prime_rates.append(option['intr_rate2'])
+            option_data['save_trm'].add(option['save_trm'])
+            option_data['rate_type'].add(option['intr_rate_type'])
+            option_data['rsrv_type'].add(option['rsrv_type'])
+
+        # 기본금리가 null 값인 경우 0으로 초기화
+        for (index, basic_rate) in enumerate(basic_rates):
+            if basic_rate is None:
+                basic_rates[index] = 0
+
+        # 우대금리가 null 값인 경우 0으로 초기화
+        for (index, prime_rate) in enumerate(prime_rates):
+            if prime_rate is None:
+                prime_rates[index] = 0
+
+        basic_rates = sorted(basic_rates, key=float)
+        prime_rates = sorted(prime_rates, key=float)
+
+        option_data['basic_rate']['min'] = basic_rates[-1] if basic_rates[0] == 0 else basic_rates[0]
+        option_data['basic_rate']['max'] = basic_rates[0] if basic_rates[-1] == 0 else basic_rates[-1]
+        option_data['prime_rate']['min'] = prime_rates[-1] if prime_rates[0] == 0 else prime_rates[0]
+        option_data['prime_rate']['max'] = prime_rates[0] if prime_rates[-1] == 0 else prime_rates[-1]
+
+        return option_data
+
+
+class SavingProductList(APIView, SavingProduct):
     def get(self, request):
         data = {}
 
@@ -106,45 +147,6 @@ class SavingProductList(APIView):
 
         return Response(response_data(True, data))
 
-    def set_options_data(self, options):
-        option_data = {
-            'basic_rate': {},
-            'prime_rate': {},
-            'save_trm': set(),
-            'rate_type': set(),
-            'rsrv_type': set()
-        }
-
-        basic_rates = []
-        prime_rates = []
-
-        for option in options:
-            basic_rates.append(option['intr_rate'])
-            prime_rates.append(option['intr_rate2'])
-            option_data['save_trm'].add(option['save_trm'])
-            option_data['rate_type'].add(option['intr_rate_type'])
-            option_data['rsrv_type'].add(option['rsrv_type'])
-
-        # 기본금리가 null 값인 경우 0으로 초기화
-        for (index, basic_rate) in enumerate(basic_rates):
-            if basic_rate is None:
-                basic_rates[index] = 0
-
-        # 우대금리가 null 값인 경우 0으로 초기화
-        for (index, prime_rate) in enumerate(prime_rates):
-            if prime_rate is None:
-                prime_rates[index] = 0
-
-        basic_rates = sorted(basic_rates, key=float)
-        prime_rates = sorted(prime_rates, key=float)
-
-        option_data['basic_rate']['min'] = basic_rates[-1] if basic_rates[0] == 0 else basic_rates[0]
-        option_data['basic_rate']['max'] = basic_rates[0] if basic_rates[-1] == 0 else basic_rates[-1]
-        option_data['prime_rate']['min'] = prime_rates[-1] if prime_rates[0] == 0 else prime_rates[0]
-        option_data['prime_rate']['max'] = prime_rates[0] if prime_rates[-1] == 0 else prime_rates[-1]
-
-        return option_data
-
 
 class SavingProductDetail(APIView):
     def get(self, request, fin_prdt_cd):
@@ -175,7 +177,7 @@ class SavingProductDetail(APIView):
             raise Http404
 
 
-class SavingProductSearch(APIView):
+class SavingProductSearch(APIView, SavingProduct):
     def get(self, request):
         # 페이징
         offset = int(request.query_params.get('offset', 1))
@@ -201,20 +203,45 @@ class SavingProductSearch(APIView):
             """
             qs = SavingProductBase.objects.all().filter(fin_prdt_nm__contains=fin_prdt_nm)
             serializer = SavingProductBaseSerializer(qs, many=True)
-            products = serializer.data[start_index:end_index]
+            data = serializer.data[start_index:end_index]
 
-            # 검색된 적금상품 개수
-            total_count = len(serializer.data)
+            # 적금상품 옵션
+            for product in data:
+                fin_prdt_cd = product['fin_prdt_cd']
+                saving_product_option_queryset = SavingProductOption.objects.all().filter(fin_prdt_cd=fin_prdt_cd)
+                saving_product_option_serializer = SavingProductOptionSerializer(saving_product_option_queryset,
+                                                                                 many=True)
+                product['options'] = saving_product_option_serializer.data
 
-            # 검색된 적금상품 리스트
-            data = {
-                'total_count': total_count,
-                'max_offset_no': math.ceil(total_count / limit),
-                'now_offset_no': offset,
-                'products': products
-            }
+            products = []
+            for product in data:
+                company = CompanyBase.objects.get(fin_co_no=product['fin_co_no'])
+                options = product['options']
+                options_data = self.set_options_data(options)
 
-            return Response(data)
+                product_data = {
+                    'id': product['fin_prdt_cd'],
+                    'bank_logo': 'logo.png',
+                    'bank_name': company.kor_co_nm,
+                    'join_way': product['join_way'],
+                    'product_name': product['fin_prdt_nm'],
+                    'basic_rate_min': options_data['basic_rate']['min'],
+                    'basic_rate_max': options_data['basic_rate']['max'],
+                    'prime_rate_min': options_data['prime_rate']['min'],
+                    'prime_rate_max': options_data['prime_rate']['max'],
+                    'months_06': '6' in options_data['save_trm'],
+                    'months_12': '12' in options_data['save_trm'],
+                    'months_24': '24' in options_data['save_trm'],
+                    'months_36': '36' in options_data['save_trm'],
+                    'rate_type_s': 'S' in options_data['rate_type'],
+                    'rate_type_m': 'M' in options_data['rate_type'],
+                    'rsrv_type_s': 'S' in options_data['rsrv_type'],
+                    'rsrv_type_f': 'F' in options_data['rsrv_type'],
+                    'join_deny': product['join_deny'],
+                    'join_member': product['join_member']
+                }
+                products.append(product_data)
+            return Response(response_data(True, products))
 
         # 상품옵션으로 검색
         else:
