@@ -52,16 +52,16 @@ class SavingProduct(object):
         custom_option_data['prime_rate']['max'] = prime_rates[0] if prime_rates[-1] == 0 else prime_rates[-1]
 
         custom_product_data = {
-            'id': product['fin_prdt_cd'],
-            'bank_logo': 'logo.png',
-            'bank_name': company.kor_co_nm,
-            'join_way': product['join_way'],
+            'product_id': product['fin_prdt_cd'],
             'product_name': product['fin_prdt_nm'],
+            'bank_id': product['fin_co_no'],
+            'bank_name': company.kor_co_nm,
+            'bank_logo': 'logo.png',
             'basic_rate_min': custom_option_data['basic_rate']['min'],
             'basic_rate_max': custom_option_data['basic_rate']['max'],
             'prime_rate_min': custom_option_data['prime_rate']['min'],
             'prime_rate_max': custom_option_data['prime_rate']['max'],
-            'months_06': '6' in custom_option_data['save_trm'],
+            'months_6': '6' in custom_option_data['save_trm'],
             'months_12': '12' in custom_option_data['save_trm'],
             'months_24': '24' in custom_option_data['save_trm'],
             'months_36': '36' in custom_option_data['save_trm'],
@@ -69,10 +69,68 @@ class SavingProduct(object):
             'rate_type_m': 'M' in custom_option_data['rate_type'],
             'rsrv_type_s': 'S' in custom_option_data['rsrv_type'],
             'rsrv_type_f': 'F' in custom_option_data['rsrv_type'],
+            'join_way': product['join_way'],
             'join_deny': product['join_deny'],
             'join_member': product['join_member']
         }
         return custom_product_data
+
+    def set_custom_option_data(self, options):
+        custom_option_data = {
+            'period': set(),
+            'rate_type': set(),
+            'rsrv_type': set(),
+            'rsrv_type_s': {
+                'basic_rate': {
+                    'months_6': None,
+                    'months_12': None,
+                    'months_24': None,
+                    'months_36': None
+                },
+                'prime_rate': {
+                    'months_6': None,
+                    'months_12': None,
+                    'months_24': None,
+                    'months_36': None
+                }
+            },
+            'rsrv_type_f': {
+                'basic_rate': {
+                    'months_6': None,
+                    'months_12': None,
+                    'months_24': None,
+                    'months_36': None
+                },
+                'prime_rate': {
+                    'months_6': None,
+                    'months_12': None,
+                    'months_24': None,
+                    'months_36': None
+                }
+            }
+        }
+        for option in options:
+            custom_option_data['period'].add(option['save_trm'])
+            custom_option_data['rate_type'].add(option['intr_rate_type'])
+            custom_option_data['rsrv_type'].add(option['rsrv_type'])
+            if option['rsrv_type'] is 'S':
+                rsrv_type_s_basic = custom_option_data['rsrv_type_s']['basic_rate']
+                rsrv_type_s_prime = custom_option_data['rsrv_type_s']['prime_rate']
+                self.set_intr_rate(rsrv_type_s_basic, rsrv_type_s_prime, option)
+            elif option['rsrv_type'] is 'F':
+                rsrv_type_f_basic = custom_option_data['rsrv_type_f']['basic_rate']
+                rsrv_type_f_prime = custom_option_data['rsrv_type_f']['prime_rate']
+                self.set_intr_rate(rsrv_type_f_basic, rsrv_type_f_prime, option)
+        return custom_option_data
+
+    def set_intr_rate(self, rsrv_type_basic, rsrv_type_prime, option):
+        period = option['save_trm']
+        basic_rate = option['intr_rate']
+        prime_rate = option['intr_rate2']
+
+        months = '_'.join(['months', period])
+        rsrv_type_basic[months] = basic_rate
+        rsrv_type_prime[months] = prime_rate
 
 
 class SavingProductList(APIView, SavingProduct):
@@ -144,7 +202,7 @@ class SavingProductList(APIView, SavingProduct):
         return Response(response_data(True, products))
 
 
-class SavingProductDetail(APIView):
+class SavingProductDetail(APIView, SavingProduct):
     def get(self, request, fin_prdt_cd):
         """
         특정 적금상품 리스트
@@ -157,18 +215,34 @@ class SavingProductDetail(APIView):
             fin_co_no = request.query_params.get('fin_co_no')
 
             # 특정 적금상품 기본
-            saving_product_base_queryset = SavingProductBase.objects.get(fin_prdt_cd=fin_prdt_cd, fin_co_no=fin_co_no)
-            saving_product_base_serializer = SavingProductBaseSerializer(saving_product_base_queryset)
+            base_qs = SavingProductBase.objects.get(fin_prdt_cd=fin_prdt_cd, fin_co_no=fin_co_no)
+            base_serializer = SavingProductBaseSerializer(base_qs)
 
             # 특정 적금상품 옵션
-            saving_product_option_queryset = SavingProductOption.objects.all().filter(fin_prdt_cd=fin_prdt_cd)
-            saving_product_option_serializer = SavingProductOptionSerializer(saving_product_option_queryset, many=True)
+            option_qs = SavingProductOption.objects.all().filter(fin_prdt_cd=fin_prdt_cd)
+            option_serializer = SavingProductOptionSerializer(option_qs, many=True)
 
             # 특정 적금상품 응답
-            data['product'] = saving_product_base_serializer.data
-            data['product']['options'] = saving_product_option_serializer.data
+            base_data = base_serializer.data
+            option_data = option_serializer.data
 
-            return Response(data)
+            custom_options_data = self.set_custom_option_data(option_data)
+            data = {
+                'product_id': base_data['fin_prdt_cd'],
+                'product_name': base_data['fin_prdt_nm'],
+                'bank_id': base_data['fin_co_no'],
+                'bank_name': base_data['kor_co_nm'],
+                'bank_logo': 'logo.png',
+                'max_limit': base_data['max_limit'],
+                'join_way': base_data['join_way'],
+                'join_deny': base_data['join_deny'],
+                'join_member': base_data['join_member'],
+                'contents_prime_condition': base_data['spcl_cnd'],
+                'contents_maturity_rate': base_data['mtrt_int'],
+                'contents_etc': base_data['etc_note'],
+                'options': custom_options_data
+            }
+            return Response(response_data(True, data))
         except SavingProductBase.DoesNotExist:
             raise Http404
 
