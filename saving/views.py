@@ -110,9 +110,9 @@ class SavingProduct(object):
             }
         }
         for option in options:
-            custom_option_data['period'].add(option['save_trm'])
-            custom_option_data['rate_type'].add(option['intr_rate_type'])
-            custom_option_data['rsrv_type'].add(option['rsrv_type'])
+            custom_option_data['period'].add(int(option['save_trm']))
+            custom_option_data['rate_type'].add(option['intr_rate_type_nm'])
+            custom_option_data['rsrv_type'].add(option['rsrv_type_nm'])
             if option['rsrv_type'] is 'S':
                 rsrv_type_s_basic = custom_option_data['rsrv_type_s']['basic_rate']
                 rsrv_type_s_prime = custom_option_data['rsrv_type_s']['prime_rate']
@@ -121,6 +121,8 @@ class SavingProduct(object):
                 rsrv_type_f_basic = custom_option_data['rsrv_type_f']['basic_rate']
                 rsrv_type_f_prime = custom_option_data['rsrv_type_f']['prime_rate']
                 self.set_intr_rate(rsrv_type_f_basic, rsrv_type_f_prime, option)
+        custom_option_data['period'] = sorted(custom_option_data['period'])
+        custom_option_data['rsrv_type'] = sorted(custom_option_data['rsrv_type'], reverse=True)
         return custom_option_data
 
     def set_intr_rate(self, rsrv_type_basic, rsrv_type_prime, option):
