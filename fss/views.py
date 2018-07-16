@@ -13,8 +13,8 @@ class SavingProduct(APIView):
     def get(self, request):
         if request.method == 'GET':
             # 전체 은행 금융상품
-            top_fin_grp_no = request.query_params.get('topFinGrpNo', '020000')
-            page_no = request.query_params.get('pageNo', 0)
+            top_fin_grp_no = request.query_params.get('top_fin_grp_no', '020000')
+            page_no = request.query_params.get('page_no', 0)
             res = services.get_saving_products(top_fin_grp_no, page_no).json()
 
             products = []
@@ -114,8 +114,8 @@ class SavingProduct(APIView):
 @api_view(['GET'])
 def companies(request):
     if request.method == 'GET':
-        top_fin_grp_no = request.query_params.get('topFinGrpNo', '020000')
-        page_no = request.query_params.get('pageNo', 1)
+        top_fin_grp_no = request.query_params.get('top_fin_grp_No', '020000')
+        page_no = request.query_params.get('page_no', 1)
 
         res = services.get_companies(top_fin_grp_no, page_no).json()
         data = res['result']['baseList']
