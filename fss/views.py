@@ -118,4 +118,5 @@ def companies(request):
         page_no = request.query_params.get('pageNo', 1)
 
         res = services.get_companies(top_fin_grp_no, page_no).json()
-        return Response(res)
+        data = res['result']['baseList']
+        return Response(response_data(True, data))
