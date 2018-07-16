@@ -14,7 +14,7 @@ def get_saving_products(top_fin_grp_no, page_no):
     return response
 
 
-def get_company(top_fin_grp_no, page_no):
+def get_companies(top_fin_grp_no, page_no):
     url = settings.COMPANY_API
     params = {
         'auth': settings.FSS_AUTHENTICATION_KEY,

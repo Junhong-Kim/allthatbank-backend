@@ -1,7 +1,6 @@
 from . import services
 from multiprocessing import Process
 
-from company.serializers import CompanyBaseSerializer, CompanyOptionSerializer
 from saving.serializers import SavingProductBaseSerializer, SavingProductOptionSerializer
 
 from rest_framework.decorators import api_view
@@ -50,39 +49,11 @@ def saving_products_option_process(saving_products_option):
     return
 
 
-@api_view(['POST'])
-def company(request):
-    if request.method == 'POST':
+@api_view(['GET'])
+def companies(request):
+    if request.method == 'GET':
         top_fin_grp_no = request.query_params.get('topFinGrpNo', '020000')
-        page_no = request.query_params.get('pageNo', '1')
+        page_no = request.query_params.get('pageNo', 1)
 
-        response = services.get_company(top_fin_grp_no, page_no).json()
-
-        company_base = response['result']['baseList']
-        company_option = response['result']['optionList']
-
-        Process(target=company_base_process, args=(company_base, top_fin_grp_no)).start()
-        Process(target=company_option_process, args=(company_option,)).start()
-
-        return Response(response)
-
-
-def company_base_process(company_base, top_fin_grp_no):
-    for company_base_obj in company_base:
-        company_base_obj['top_fin_grp_no'] = top_fin_grp_no
-        serializer = CompanyBaseSerializer(data=company_base_obj)
-        if serializer.is_valid():
-            serializer.save()
-        else:
-            raise Exception(serializer.errors)
-    return
-
-
-def company_option_process(company_option):
-    for company_option_obj in company_option:
-        serializer = CompanyOptionSerializer(data=company_option_obj)
-        if serializer.is_valid():
-            serializer.save()
-        else:
-            raise Exception(serializer.errors)
-    return
+        res = services.get_companies(top_fin_grp_no, page_no).json()
+        return Response(res)
