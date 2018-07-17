@@ -105,13 +105,12 @@ class SavingProductList(APIView, SavingProduct):
                 for product in deepcopy_products:
                     if product['fin_co_no'] == fin_co_no:
                         products.append(product)
-            # 출력 형식 변경
-            custom_products = []
-            for product in products:
-                custom_product_data = self.set_custom_product_data(product)
-                custom_products.append(custom_product_data)
-            return Response(response_data(True, custom_products))
-        return Response(response_data(True, products))
+        # 출력 형식 변경
+        custom_products = []
+        for product in products:
+            custom_product_data = self.set_custom_product_data(product)
+            custom_products.append(custom_product_data)
+        return Response(response_data(True, custom_products))
 
 
 class SavingProductSearch(APIView, SavingProduct):
