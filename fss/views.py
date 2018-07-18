@@ -1,4 +1,5 @@
 import copy
+import traceback
 
 from rest_framework.views import APIView
 
@@ -71,6 +72,65 @@ class SavingProduct:
             'join_member': product['join_member']
         }
         return custom_product_data
+
+    def set_custom_option_data(self, options):
+        custom_option_data = {
+            'period': set(),
+            'rate_type': set(),
+            'rsrv_type': set(),
+            'rsrv_type_s': {
+                'basic_rate': {
+                    'months_6': None,
+                    'months_12': None,
+                    'months_24': None,
+                    'months_36': None
+                },
+                'prime_rate': {
+                    'months_6': None,
+                    'months_12': None,
+                    'months_24': None,
+                    'months_36': None
+                }
+            },
+            'rsrv_type_f': {
+                'basic_rate': {
+                    'months_6': None,
+                    'months_12': None,
+                    'months_24': None,
+                    'months_36': None
+                },
+                'prime_rate': {
+                    'months_6': None,
+                    'months_12': None,
+                    'months_24': None,
+                    'months_36': None
+                }
+            }
+        }
+        for option in options:
+            custom_option_data['period'].add(int(option['save_trm']))
+            custom_option_data['rate_type'].add(option['intr_rate_type_nm'])
+            custom_option_data['rsrv_type'].add(option['rsrv_type_nm'])
+            if option['rsrv_type'] is 'S':
+                rsrv_type_s_basic = custom_option_data['rsrv_type_s']['basic_rate']
+                rsrv_type_s_prime = custom_option_data['rsrv_type_s']['prime_rate']
+                self.set_intr_rate(rsrv_type_s_basic, rsrv_type_s_prime, option)
+            elif option['rsrv_type'] is 'F':
+                rsrv_type_f_basic = custom_option_data['rsrv_type_f']['basic_rate']
+                rsrv_type_f_prime = custom_option_data['rsrv_type_f']['prime_rate']
+                self.set_intr_rate(rsrv_type_f_basic, rsrv_type_f_prime, option)
+        custom_option_data['period'] = sorted(custom_option_data['period'])
+        custom_option_data['rsrv_type'] = sorted(custom_option_data['rsrv_type'], reverse=True)
+        return custom_option_data
+
+    def set_intr_rate(self, rsrv_type_basic, rsrv_type_prime, option):
+        period = option['save_trm']
+        basic_rate = option['intr_rate']
+        prime_rate = option['intr_rate2']
+
+        months = '_'.join(['months', period])
+        rsrv_type_basic[months] = basic_rate
+        rsrv_type_prime[months] = prime_rate
 
 
 class SavingProductList(APIView, SavingProduct):
@@ -238,6 +298,65 @@ class SavingProductSearchOption(APIView, SavingProduct):
                 return list(filter(lambda product: product[param] is True, products))
             else:
                 return list(filter(lambda product: float(product[param]) >= float(value), products))
+
+
+class SavingProductDetail(APIView, SavingProduct):
+    def get(self, request, fin_prdt_cd):
+        """
+        전체 은행 금융상품
+        """
+        top_fin_grp_no = request.query_params.get('top_fin_grp_no', '020000')
+        page_no = request.query_params.get('page_no', 0)
+        fin_co_no = request.query_params.get('fin_co_no', None)
+        res = services.get_saving_products(top_fin_grp_no, page_no).json()
+
+        products = []
+        for page_no in range(int(res['result']['max_page_no'])):
+            res = services.get_saving_products(top_fin_grp_no, page_no + 1).json()
+            product_list = res['result']['baseList']
+            option_list = res['result']['optionList']
+
+            for product in product_list:
+                product['options'] = []
+                for option in option_list:
+                    if product['fin_prdt_cd'] == option['fin_prdt_cd']:
+                        product['options'].append(option)
+                products.append(product)
+
+        params = [
+            ('fin_prdt_cd', fin_prdt_cd),
+            ('fin_co_no', fin_co_no)
+        ]
+
+        try:
+            for param in params:
+                products = self.product_filter(products, param[0], param[1])
+            product_detail = products[0]
+            custom_options_data = self.set_custom_option_data(product_detail['options'])
+            data = {
+                'product_id': product_detail['fin_prdt_cd'],
+                'product_name': product_detail['fin_prdt_nm'],
+                'bank_id': product_detail['fin_co_no'],
+                'bank_name': product_detail['kor_co_nm'],
+                'bank_logo': 'logo.png',
+                'max_limit': product_detail['max_limit'],
+                'join_way': product_detail['join_way'],
+                'join_deny': product_detail['join_deny'],
+                'join_member': product_detail['join_member'],
+                'contents_prime_condition': product_detail['spcl_cnd'],
+                'contents_maturity_rate': product_detail['mtrt_int'],
+                'contents_etc': product_detail['etc_note'],
+                'options': custom_options_data
+            }
+            return Response(response_data(True, data))
+        except Exception as e:
+            print(traceback.format_exc())
+
+    def product_filter(self, products, param, value):
+        if value is None:
+            return products
+        else:
+            return list(filter(lambda product: product[param] == value, products))
 
 
 @api_view(['GET'])
