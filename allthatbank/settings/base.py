@@ -61,11 +61,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'fss',
-    'saving',
     'user',
-    'company',
-    'bankbook',
-    'record',
 ]
 
 REST_FRAMEWORK = {
