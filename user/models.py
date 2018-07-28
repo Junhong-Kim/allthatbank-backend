@@ -7,15 +7,16 @@ class User(models.Model):
         ('G', 'Guest')
     )
 
-    email = models.EmailField(max_length=128, unique=True)
-    name = models.CharField(max_length=64)
-    gender = models.CharField(max_length=32)
-    birthday = models.CharField(max_length=32)
-    picture = models.CharField(max_length=256)
-    fb_access_token = models.CharField(max_length=256)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    role = models.CharField(max_length=32, choices=USER_ROLE, default='G')
+    email = models.CharField(max_length=100, null=True)
+    nickname = models.CharField(max_length=50, null=True)
+    picture_url = models.CharField(max_length=255, null=True)
+    sns_type = models.CharField(max_length=50, null=True)
+    sns_id = models.CharField(max_length=255, null=True)
+    sns_access_token = models.CharField(max_length=255, null=True)
+    role = models.CharField(max_length=10, choices=USER_ROLE, default='G')
 
     class Meta:
         db_table = 'users'
+        unique_together = ('sns_type', 'sns_id')
