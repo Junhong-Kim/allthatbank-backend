@@ -44,6 +44,10 @@ FSS_AUTHENTICATION_KEY = get_secret('FSS_AUTHENTICATION_KEY')
 SAVING_PRODUCTS_API = get_secret('SAVING_PRODUCTS_API')
 COMPANY_API = get_secret('COMPANY_API')
 
+# 페이스북 APP
+FB_APP_ID = get_secret('FB_APP_ID')
+FB_APP_SECRET = get_secret('FB_APP_SECRET')
+
 # SECURITY WARNING: don't run with debug turned on in production!
 # DEBUG = True
 
