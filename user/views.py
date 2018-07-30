@@ -36,7 +36,7 @@ class UserDetail(APIView):
         try:
             return User.objects.get(pk=pk)
         except User.DoesNotExist:
-            return Http404
+            raise Http404
 
     def get(self, request, pk):
         user = self.get_object(pk)
