@@ -1,7 +1,7 @@
 def response_data(success, data=None):
     res = {'success': success}
 
-    if success and isinstance(data, dict):
+    if success and (isinstance(data, dict) or data is None):
         # 단수
         res['data'] = data
     elif success:
