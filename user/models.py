@@ -16,6 +16,8 @@ class User(models.Model):
     sns_id = models.CharField(max_length=255, null=True)
     sns_access_token = models.CharField(max_length=255, null=True)
     role = models.CharField(max_length=10, choices=USER_ROLE, default='G')
+    username = models.CharField(max_length=100, null=True, unique=True)
+    password = models.CharField(max_length=255, null=True)
 
     class Meta:
         db_table = 'users'
