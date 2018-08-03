@@ -21,4 +21,3 @@ class User(models.Model):
 
     class Meta:
         db_table = 'users'
-        unique_together = ('sns_type', 'sns_id')
