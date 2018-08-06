@@ -23,7 +23,11 @@ class UserList(APIView):
             serializer.save()
             return Response(response_data(True, serializer.data))
         else:
-            return Response(response_data(False, serializer.errors), status=status.HTTP_400_BAD_REQUEST)
+            try:
+                User.objects.get(username=request.data['username'])
+                return Response(response_data(False, serializer.errors), status=status.HTTP_409_CONFLICT)
+            except User.DoesNotExist:
+                return Response(response_data(False, serializer.errors))
 
     def get(self, request):
         qs = User.objects.all()
