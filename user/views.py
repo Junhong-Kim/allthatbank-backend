@@ -87,3 +87,16 @@ class DebugFbToken(APIView):
 
         res = requests.get(url, params).json()
         return res
+
+
+class SignIn(APIView):
+    def post(self, request):
+        username = request.data['username']
+        password = request.data['password']
+
+        token = User.authentication(username, password)
+        if token is None:
+            return Response(response_data(False, '로그인 실패'), status=status.HTTP_401_UNAUTHORIZED)
+        else:
+            data = {'x_access_token': token}
+        return Response(response_data(True, data))

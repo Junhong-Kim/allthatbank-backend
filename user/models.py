@@ -1,5 +1,8 @@
 from django.db import models
 
+from allthatbank.utils.auth import Authentication
+from allthatbank.utils.cipher import AESCipher
+
 
 class User(models.Model):
     USER_ROLE = (
@@ -18,6 +21,17 @@ class User(models.Model):
     role = models.CharField(max_length=10, choices=USER_ROLE, default='G')
     username = models.CharField(max_length=100, null=True, unique=True)
     password = models.CharField(max_length=255, null=True)
+
+    @staticmethod
+    def authentication(username, password):
+        user = User.objects.get(username=username)
+        decrypted_password = AESCipher().decrypt_str(user.password)
+
+        if password == decrypted_password:
+            token = Authentication().create_token(user)
+            return token
+        else:
+            return None
 
     class Meta:
         db_table = 'users'
