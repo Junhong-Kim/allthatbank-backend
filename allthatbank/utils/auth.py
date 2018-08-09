@@ -28,12 +28,11 @@ class Authentication:
         token = jwt.encode(payload=payload, key=self.secret_key, algorithm='HS256')
         return token
 
-    def validate_token(self, token, access_token):
+    def validate_token(self, token, secret_key):
         try:
-            jwt.decode(jwt=token, key=self.secret_key, algorithms='HS256')
+            data = jwt.decode(jwt=token, key=secret_key, algorithms='HS256')
+            return data
         except jwt.ExpiredSignatureError:
             return '만료된 토큰'
         except jwt.InvalidTokenError:
             return '유효하지 않은 토큰'
-        else:
-            return True

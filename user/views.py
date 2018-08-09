@@ -6,6 +6,7 @@ from rest_framework import viewsets, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from allthatbank.utils.auth import Authentication
 from common.response import response_data
 from user.models import User
 from user.serializers import UserSerializer
@@ -60,6 +61,16 @@ class UserDetail(APIView):
         user = self.get_object(pk)
         user.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class DebugLocalToken(APIView):
+    def post(self, request):
+        token = request.data['x-access-token']
+        secret = settings.SECRET_KEY
+        data = Authentication().validate_token(token, secret)
+        if type(data) is not dict:
+            data = {'error': data}
+        return Response(response_data(True, data))
 
 
 class DebugFbToken(APIView):
