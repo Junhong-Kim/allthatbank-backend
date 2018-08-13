@@ -25,7 +25,10 @@ class User(models.Model):
     @staticmethod
     def authentication(username, password):
         user = User.objects.get(username=username)
-        decrypted_password = AESCipher().decrypt_str(user.password)
+        if password is None:
+            decrypted_password = None
+        else:
+            decrypted_password = AESCipher().decrypt_str(user.password)
 
         if password == decrypted_password:
             token = Authentication().create_token(user)
