@@ -67,6 +67,7 @@ INSTALLED_APPS = [
     'allthatbank',
     'fss',
     'user',
+    'board',
 ]
 
 REST_FRAMEWORK = {
