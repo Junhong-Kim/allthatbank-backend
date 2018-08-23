@@ -66,6 +66,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'allthatbank',
     'fss',
+    'core',
     'user',
     'board',
 ]
