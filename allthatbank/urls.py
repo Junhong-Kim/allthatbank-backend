@@ -23,4 +23,5 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('fss/', include('fss.urls')),
     path('users/', include('user.urls')),
+    path('board/', include('board.urls')),
 ]
