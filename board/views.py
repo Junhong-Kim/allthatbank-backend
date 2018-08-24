@@ -5,6 +5,7 @@ from rest_framework.views import APIView
 
 from board.models import Free
 from board.serializers import FreeSerializer
+from common.paging import paging_data
 from common.response import response_data
 from user.models import User
 
@@ -19,7 +20,10 @@ class FreeList(APIView):
             return Response(response_data(False, serializer.errors), status=status.HTTP_400_BAD_REQUEST)
 
     def get(self, request):
-        qs = Free.objects.all()
+        limit = request.query_params.get('limit', 10)
+        page = request.query_params.get('page', 1)
+
+        qs = paging_data(Free.objects.all(), limit, page)
         serializer = FreeSerializer(qs, many=True)
         return Response(response_data(True, serializer.data))
 
