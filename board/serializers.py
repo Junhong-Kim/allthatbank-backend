@@ -1,9 +1,9 @@
 from rest_framework import serializers
 
-from board.models import Free
+from board.models import Post
 
 
-class FreeSerializer(serializers.ModelSerializer):
+class PostSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Free
+        model = Post
         fields = '__all__'

@@ -4,7 +4,7 @@ from core.models import TimeStampedModel
 from user.models import User
 
 
-class Free(TimeStampedModel):
+class Post(TimeStampedModel):
     title = models.CharField(max_length=100)
     contents = models.TextField()
     views = models.IntegerField()
