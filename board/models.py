@@ -17,3 +17,10 @@ class Post(TimeStampedModel):
     views = models.IntegerField()
     like = models.IntegerField()
     user = models.ForeignKey(User, db_constraint=True, on_delete=models.CASCADE)
+
+
+class Comment(TimeStampedModel):
+    contents = models.TextField()
+    like = models.IntegerField()
+    post = models.ForeignKey(Post, db_constraint=True, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, db_constraint=True, on_delete=models.CASCADE)
