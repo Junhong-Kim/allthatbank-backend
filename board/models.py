@@ -5,6 +5,13 @@ from user.models import User
 
 
 class Post(TimeStampedModel):
+    BOARD_CATEGORY = (
+        ('N', 'Notice'),
+        ('F', 'FreeBoard'),
+        ('Q', 'Question'),
+    )
+
+    category = models.CharField(max_length=50, choices=BOARD_CATEGORY, default='F')
     title = models.CharField(max_length=100)
     contents = models.TextField()
     views = models.IntegerField()
