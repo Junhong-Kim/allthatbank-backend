@@ -14,13 +14,13 @@ class Post(TimeStampedModel):
     category = models.CharField(max_length=50, choices=BOARD_CATEGORY, default='F')
     title = models.CharField(max_length=100)
     contents = models.TextField()
-    views = models.IntegerField()
-    like = models.IntegerField()
+    views = models.IntegerField(default=0)
+    like = models.IntegerField(default=0)
     user = models.ForeignKey(User, db_constraint=True, on_delete=models.CASCADE)
 
 
 class Comment(TimeStampedModel):
     contents = models.TextField()
-    like = models.IntegerField()
+    like = models.IntegerField(default=0)
     post = models.ForeignKey(Post, db_constraint=True, on_delete=models.CASCADE)
     user = models.ForeignKey(User, db_constraint=True, on_delete=models.CASCADE)
