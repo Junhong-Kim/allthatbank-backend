@@ -7,9 +7,11 @@ from rest_framework.views import APIView
 
 from board.models import Post, Comment
 from board.serializers import PostSerializer, CommentSerializer
+from common.datetime import datetime_formatter
 from common.paging import paging_data
 from common.response import response_data
 from user.models import User
+from user.serializers import UserSerializer
 
 
 class PostListAPIView(APIView):
@@ -26,8 +28,17 @@ class PostListAPIView(APIView):
         page = request.query_params.get('page', 1)
 
         qs = paging_data(Post.objects.all(), limit, page)
-        serializer = PostSerializer(qs, many=True)
-        return Response(response_data(True, serializer.data))
+        post_serializer = PostSerializer(qs, many=True)
+        posts = post_serializer.data
+
+        for index, post in enumerate(posts):
+            user = User.objects.get(pk=post['user'])
+            user_serializer = UserSerializer(user)
+
+            posts[index]['created_at'] = datetime_formatter(post['created_at'], '%Y-%m-%d %H:%M:%S')
+            posts[index]['updated_at'] = datetime_formatter(post['updated_at'], '%Y-%m-%d %H:%M:%S')
+            posts[index]['user'] = user_serializer.data
+        return Response(response_data(True, posts))
 
 
 class PostDetailAPIView(APIView):
