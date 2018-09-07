@@ -49,13 +49,21 @@ class PostDetailAPIView(APIView):
             raise Http404
 
     def get(self, request, pk):
-        free = self.get_object(pk)
-        serializer = PostSerializer(free)
-        return Response(response_data(True, serializer.data))
+        post = self.get_object(pk)
+        post_serializer = PostSerializer(post)
+        post_data = post_serializer.data
+
+        user = User.objects.get(pk=post_data['user'])
+        user_serializer = UserSerializer(user)
+
+        post_data['created_at'] = datetime_formatter(post_data['created_at'], '%Y-%m-%d %H:%M:%S')
+        post_data['updated_at'] = datetime_formatter(post_data['updated_at'], '%Y-%m-%d %H:%M:%S')
+        post_data['user'] = user_serializer.data
+        return Response(response_data(True, post_data))
 
     def put(self, request, pk):
-        free = self.get_object(pk)
-        serializer = PostSerializer(free, data=request.data, partial=True)
+        post = self.get_object(pk)
+        serializer = PostSerializer(post, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
             return Response(response_data(True, serializer.data))
@@ -63,8 +71,8 @@ class PostDetailAPIView(APIView):
             return Response(response_data(False, serializer.errors), status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, pk):
-        free = self.get_object(pk)
-        free.delete()
+        post = self.get_object(pk)
+        post.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
