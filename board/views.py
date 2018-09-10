@@ -90,8 +90,17 @@ class CommentListAPIView(APIView):
 
     def get(self, request, post_id):
         qs = Comment.objects.filter(post_id=post_id)
-        serializer = CommentSerializer(qs, many=True)
-        return Response(response_data(True, serializer.data))
+        comment_serializer = CommentSerializer(qs, many=True)
+        comments = comment_serializer.data
+
+        for index, comment in enumerate(comments):
+            user = User.objects.get(pk=comment['user'])
+            user_serializer = UserSerializer(user)
+
+            comments[index]['created_at'] = datetime_formatter(comment['created_at'], '%Y-%m-%d %H:%M:%S')
+            comments[index]['updated_at'] = datetime_formatter(comment['updated_at'], '%Y-%m-%d %H:%M:%S')
+            comments[index]['user'] = user_serializer.data
+        return Response(response_data(True, comments))
 
 
 class CommentDetailAPIView(APIView):
