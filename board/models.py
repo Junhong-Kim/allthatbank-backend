@@ -25,6 +25,7 @@ class PostLike(TimeStampedModel):
 
     class Meta:
         db_table = 'board_post_like'
+        unique_together = ('post', 'user')
 
 
 class Comment(TimeStampedModel):
@@ -40,3 +41,4 @@ class CommentLike(TimeStampedModel):
 
     class Meta:
         db_table = 'board_comment_like'
+        unique_together = ('comment', 'user')
