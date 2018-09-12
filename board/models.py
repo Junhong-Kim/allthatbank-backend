@@ -19,8 +19,24 @@ class Post(TimeStampedModel):
     user = models.ForeignKey(User, db_constraint=True, on_delete=models.CASCADE)
 
 
+class PostLike(TimeStampedModel):
+    post = models.ForeignKey(Post, db_constraint=True, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, db_constraint=True, on_delete=models.CASCADE)
+
+    class Meta:
+        db_table = 'board_post_like'
+
+
 class Comment(TimeStampedModel):
     contents = models.TextField()
     like = models.IntegerField(default=0)
     post = models.ForeignKey(Post, db_constraint=True, on_delete=models.CASCADE)
     user = models.ForeignKey(User, db_constraint=True, on_delete=models.CASCADE)
+
+
+class CommentLike(TimeStampedModel):
+    comment = models.ForeignKey(Comment, db_constraint=True, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, db_constraint=True, on_delete=models.CASCADE)
+
+    class Meta:
+        db_table = 'board_comment_like'
