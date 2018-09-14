@@ -5,8 +5,8 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from board.models import Post, Comment
-from board.serializers import PostSerializer, CommentSerializer
+from board.models import Post, Comment, PostLike
+from board.serializers import PostSerializer, CommentSerializer, PostLikeSerializer
 from common.datetime import datetime_formatter
 from common.paging import paging_data
 from common.response import response_data
@@ -74,6 +74,42 @@ class PostDetailAPIView(APIView):
         post = self.get_object(pk)
         post.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class PostLikeListAPIView(APIView):
+    def post(self, request, post_id):
+        user_id = int(request.query_params['user_id'])
+        serializer = PostLikeSerializer(data={
+            'post': post_id,
+            'user': user_id
+        })
+        if serializer.is_valid():
+            serializer.save()
+            self.like_post(post_id)
+            return Response(response_data(True, serializer.data))
+        else:
+            PostLike.objects.get(post_id=post_id, user_id=user_id).delete()
+            self.unlike_post(post_id)
+            return Response(response_data(True), status=status.HTTP_204_NO_CONTENT)
+
+    def get(self, request, post_id):
+        qs = PostLike.objects.filter(post_id=post_id)
+        serializer = PostLikeSerializer(qs, many=True)
+        return Response(response_data(True, serializer.data))
+
+    def like_post(self, pk):
+        post = PostDetailAPIView().get_object(pk)
+        like = post.like + 1
+        post_serializer = PostSerializer(post, data={'like': like}, partial=True)
+        if post_serializer.is_valid():
+            post_serializer.save()
+
+    def unlike_post(self, pk):
+        post = PostDetailAPIView().get_object(pk)
+        like = post.like - 1
+        post_serializer = PostSerializer(post, data={'like': like}, partial=True)
+        if post_serializer.is_valid():
+            post_serializer.save()
 
 
 class CommentListAPIView(APIView):
