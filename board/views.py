@@ -50,6 +50,7 @@ class PostDetailAPIView(APIView):
 
     def get(self, request, pk):
         post = self.get_object(pk)
+        self.view_post(post)
         post_serializer = PostSerializer(post)
         post_data = post_serializer.data
 
@@ -74,6 +75,12 @@ class PostDetailAPIView(APIView):
         post = self.get_object(pk)
         post.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+    def view_post(self, post):
+        views = post.views + 1
+        post_serializer = PostSerializer(post, data={'views': views}, partial=True)
+        if post_serializer.is_valid():
+            post_serializer.save()
 
 
 class PostLikeListAPIView(APIView):
