@@ -5,8 +5,8 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from board.models import Post, Comment, PostLike
-from board.serializers import PostSerializer, CommentSerializer, PostLikeSerializer
+from board.models import Post, Comment, PostLike, CommentLike
+from board.serializers import PostSerializer, CommentSerializer, PostLikeSerializer, CommentLikeSerializer
 from common.datetime import datetime_formatter
 from common.paging import paging_data
 from common.response import response_data
@@ -144,6 +144,42 @@ class CommentListAPIView(APIView):
             comments[index]['updated_at'] = datetime_formatter(comment['updated_at'], '%Y-%m-%d %H:%M:%S')
             comments[index]['user'] = user_serializer.data
         return Response(response_data(True, comments))
+
+
+class CommentLikeListAPIView(APIView):
+    def post(self, request, comment_id):
+        user_id = int(request.query_params['user_id'])
+        serializer = CommentLikeSerializer(data={
+            'comment': comment_id,
+            'user': user_id
+        })
+        if serializer.is_valid():
+            serializer.save()
+            self.like_comment(comment_id)
+            return Response(response_data(True, serializer.data))
+        else:
+            CommentLike.objects.get(comment_id=comment_id, user_id=user_id).delete()
+            self.unlike_comment(comment_id)
+            return Response(response_data(True), status=status.HTTP_204_NO_CONTENT)
+
+    def get(self, request, comment_id):
+        qs = CommentLike.objects.filter(comment_id=comment_id)
+        serializer = CommentLikeSerializer(qs, many=True)
+        return Response(response_data(True, serializer.data))
+
+    def like_comment(self, pk):
+        comment = CommentDetailAPIView().get_object(pk)
+        like = comment.like + 1
+        comment_serializer = CommentSerializer(comment, data={'like': like}, partial=True)
+        if comment_serializer.is_valid():
+            comment_serializer.save()
+
+    def unlike_comment(self, pk):
+        comment = CommentDetailAPIView().get_object(pk)
+        like = comment.like - 1
+        comment_serializer = CommentSerializer(comment, data={'like': like}, partial=True)
+        if comment_serializer.is_valid():
+            comment_serializer.save()
 
 
 class CommentDetailAPIView(APIView):
