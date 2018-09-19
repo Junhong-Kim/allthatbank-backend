@@ -1,4 +1,5 @@
 import copy
+import math
 
 from django.http import Http404
 from rest_framework import status
@@ -24,11 +25,12 @@ class PostListAPIView(APIView):
             return Response(response_data(False, serializer.errors), status=status.HTTP_400_BAD_REQUEST)
 
     def get(self, request):
-        limit = request.query_params.get('limit', 10)
-        page = request.query_params.get('page', 1)
+        limit = int(request.query_params.get('limit', 10))
+        now_page = int(request.query_params.get('page', 1))
+        max_page = math.ceil(len(Post.objects.all()) / limit)
 
-        qs = paging_data(Post.objects.all(), limit, page)
-        post_serializer = PostSerializer(qs, many=True)
+        post_qs = paging_data(Post.objects.all(), limit, now_page)
+        post_serializer = PostSerializer(post_qs, many=True)
         posts = post_serializer.data
 
         for index, post in enumerate(posts):
@@ -38,7 +40,7 @@ class PostListAPIView(APIView):
             posts[index]['created_at'] = datetime_formatter(post['created_at'], '%Y-%m-%d %H:%M:%S')
             posts[index]['updated_at'] = datetime_formatter(post['updated_at'], '%Y-%m-%d %H:%M:%S')
             posts[index]['user'] = user_serializer.data
-        return Response(response_data(True, posts))
+        return Response(response_data(True, posts, now_page, max_page))
 
 
 class PostDetailAPIView(APIView):
