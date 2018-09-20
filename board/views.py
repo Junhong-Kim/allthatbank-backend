@@ -29,7 +29,7 @@ class PostListAPIView(APIView):
         now_page = int(request.query_params.get('page', 1))
         max_page = math.ceil(len(Post.objects.all()) / limit)
 
-        post_qs = paging_data(Post.objects.all(), limit, now_page)
+        post_qs = paging_data(Post.objects.all()[::-1], limit, now_page)
         post_serializer = PostSerializer(post_qs, many=True)
         posts = post_serializer.data
 
