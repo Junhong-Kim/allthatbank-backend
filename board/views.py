@@ -36,10 +36,12 @@ class PostListAPIView(APIView):
         for index, post in enumerate(posts):
             user = User.objects.get(pk=post['user'])
             user_serializer = UserSerializer(user)
+            comment_count = Comment.objects.filter(post_id=post['id']).count()
 
             posts[index]['created_at'] = datetime_formatter(post['created_at'], '%Y-%m-%d %H:%M:%S')
             posts[index]['updated_at'] = datetime_formatter(post['updated_at'], '%Y-%m-%d %H:%M:%S')
             posts[index]['user'] = user_serializer.data
+            posts[index]['comment_count'] = comment_count
         return Response(response_data(True, posts, now_page, max_page))
 
 
@@ -58,10 +60,12 @@ class PostDetailAPIView(APIView):
 
         user = User.objects.get(pk=post_data['user'])
         user_serializer = UserSerializer(user)
+        comment_count = Comment.objects.filter(post_id=post_data['id']).count()
 
         post_data['created_at'] = datetime_formatter(post_data['created_at'], '%Y-%m-%d %H:%M:%S')
         post_data['updated_at'] = datetime_formatter(post_data['updated_at'], '%Y-%m-%d %H:%M:%S')
         post_data['user'] = user_serializer.data
+        post_data['comment_count'] = comment_count
         return Response(response_data(True, post_data))
 
     def put(self, request, pk):
