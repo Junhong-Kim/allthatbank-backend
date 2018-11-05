@@ -1,8 +1,8 @@
 import base64
 import hashlib
 
-from Crypto import Random
-from Crypto.Cipher import AES
+from Cryptodome import Random
+from Cryptodome.Cipher import AES
 from django.conf import settings
 
 
@@ -14,7 +14,7 @@ class AESCipher:
         self.key = hashlib.sha256(settings.SECRET_KEY.encode('utf-8')).digest()
 
     def encrypt(self, raw):
-        raw = self.pad(raw)
+        raw = self.pad(raw).encode('utf-8')
         iv = Random.new().read(AES.block_size)
         cipher = AES.new(self.key, AES.MODE_CBC, iv)
         return base64.b64encode(iv + cipher.encrypt(raw))

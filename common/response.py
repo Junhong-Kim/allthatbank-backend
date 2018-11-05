@@ -1,20 +1,17 @@
-from rest_framework.utils.serializer_helpers import ReturnList
+def response_data(success, data=None, now_page=None, max_page=None):
+    res = {'success': success}
 
-
-def response_data(success, data=None):
-    res = {}
-
-    if success and (isinstance(data, ReturnList) or isinstance(data, list)):
-        # 복수
-        res['success'] = 'YES'
-        res['total_count'] = len(data)
+    if success and (isinstance(data, dict) or data is None):
+        # 단수
         res['data'] = data
     elif success:
-        # 단수
-        res['success'] = 'YES'
+        # 복수
+        if now_page is not None:
+            res['max_page'] = max_page
+            res['now_page'] = now_page
+        res['total_count'] = len(data)
         res['data'] = data
     else:
         # 에러
-        res['success'] = 'NO'
-        res['msg'] = str(data)
+        res['error'] = data
     return res
