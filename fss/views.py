@@ -360,6 +360,26 @@ class SavingProductDetail(APIView, SavingProduct):
 
 
 class DepositProduct:
+    def get_products(self, top_fin_grp_no):
+        """
+        전체 은행 금융상품(예금)
+        """
+        res = services.get_deposit_products(top_fin_grp_no, 0).json()
+
+        products = []
+        for page_no in range(int(res['result']['max_page_no'])):
+            res = services.get_deposit_products(top_fin_grp_no, page_no + 1).json()
+            product_list = res['result']['baseList']
+            option_list = res['result']['optionList']
+
+            for product in product_list:
+                product['options'] = []
+                for option in option_list:
+                    if product['fin_prdt_cd'] == option['fin_prdt_cd']:
+                        product['options'].append(option)
+                products.append(product)
+        return products
+
     def set_custom_product_data(self, product):
         options = product['options']
         custom_option_data = {
@@ -422,35 +442,40 @@ class DepositProduct:
 class DepositProductList(APIView, DepositProduct):
     def get(self, request):
         """
-        전체 은행 금융상품(예금)
-        """
-        top_fin_grp_no = request.query_params.get('top_fin_grp_no', '020000')
-        page_no = request.query_params.get('page_no', 0)
-        res = services.get_deposit_products(top_fin_grp_no, page_no).json()
-
-        products = []
-        for page_no in range(int(res['result']['max_page_no'])):
-            res = services.get_deposit_products(top_fin_grp_no, page_no + 1).json()
-            product_list = res['result']['baseList']
-            option_list = res['result']['optionList']
-
-            for product in product_list:
-                product['options'] = []
-                for option in option_list:
-                    if product['fin_prdt_cd'] == option['fin_prdt_cd']:
-                        product['options'].append(option)
-                products.append(product)
-        """
         특정 은행 금융상품(예금)
         """
+        top_fin_grp_no = request.query_params.get('top_fin_grp_no', '020000')
         fin_co_nos = request.query_params.getlist('fin_co_no')
-        if len(fin_co_nos) > 0:
-            deepcopy_products = copy.deepcopy(products)
-            products = []
-            for fin_co_no in fin_co_nos:
-                for product in deepcopy_products:
-                    if product['fin_co_no'] == fin_co_no:
-                        products.append(product)
+
+        products = self.get_products(top_fin_grp_no)
+        deepcopy_products = copy.deepcopy(products)
+        products = []
+        for fin_co_no in fin_co_nos:
+            for product in deepcopy_products:
+                if product['fin_co_no'] == fin_co_no:
+                    products.append(product)
+        # 출력 형식 변경
+        custom_products = []
+        for product in products:
+            custom_product_data = self.set_custom_product_data(product)
+            custom_products.append(custom_product_data)
+        return Response(response_data(True, custom_products))
+
+
+class DepositProductSearch(APIView, DepositProduct):
+    def get(self, request):
+        """
+        특정 상품명 검색(예금)
+        """
+        top_fin_grp_no = request.query_params.get('top_fin_grp_no', '020000')
+        fin_prdt_nm = request.query_params.get('fin_prdt_nm')
+
+        products = self.get_products(top_fin_grp_no)
+        deepcopy_products = copy.deepcopy(products)
+        products = []
+        for product in deepcopy_products:
+            if fin_prdt_nm in product['fin_prdt_nm']:
+                products.append(product)
         # 출력 형식 변경
         custom_products = []
         for product in products:
