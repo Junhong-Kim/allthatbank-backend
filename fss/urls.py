@@ -8,5 +8,6 @@ urlpatterns = [
     path('saving_products/<str:fin_prdt_cd>', views.SavingProductDetail.as_view()),
     path('deposit_products', views.DepositProductList.as_view()),
     path('deposit_products/search', views.DepositProductSearch.as_view()),
+    path('deposit_products/search/option', views.DepositProductSearchOption.as_view()),
     path('companies', views.companies),
 ]

@@ -484,6 +484,70 @@ class DepositProductSearch(APIView, DepositProduct):
         return Response(response_data(True, custom_products))
 
 
+class DepositProductSearchOption(APIView, DepositProduct):
+    def get(self, request):
+        """
+        옵션 검색
+        """
+        top_fin_grp_no = request.query_params.get('top_fin_grp_no', '020000')
+        fin_co_no = request.query_params.get('fin_co_no', None)
+        intr_rate_type = request.query_params.get('intr_rate_type', None)
+        save_trm = request.query_params.get('save_trm', None)
+        intr_rate = request.query_params.get('intr_rate', 0)
+        intr_rate2 = request.query_params.get('intr_rate2', 0)
+
+        products = self.get_products(top_fin_grp_no)
+        custom_products = []
+        for product in products:
+            custom_product_data = self.set_custom_product_data(product)
+            custom_products.append(custom_product_data)
+
+        # 금리 유형
+        if intr_rate_type == 'S':
+            param_rate_type = 'rate_type_s'
+        else:
+            param_rate_type = 'rate_type_m'
+
+        # 저축 기간
+        if save_trm == '6':
+            param_save_trm = 'months_6'
+        elif save_trm == '12':
+            param_save_trm = 'months_12'
+        elif save_trm == '24':
+            param_save_trm = 'months_24'
+        else:
+            param_save_trm = 'months_36'
+
+        params = [
+            ('bank_id', fin_co_no),
+            (param_rate_type, intr_rate_type),
+            (param_save_trm, save_trm),
+            ('basic_rate_max', intr_rate),
+            ('prime_rate_max', intr_rate2)
+        ]
+
+        try:
+            for param in params:
+                custom_products = self.product_filter(custom_products, param[0], param[1])
+            return Response(response_data(True, custom_products))
+        except Exception as e:
+            # 검색 결과가 없을 때
+            return Response(response_data(True, []))
+
+    def product_filter(self, products, param, value):
+        if value is None:
+            return products
+        else:
+            if param == 'bank_id':
+                return list(filter(lambda product: product[param] == value, products))
+            elif 'type' in param:
+                return list(filter(lambda product: product[param] is True, products))
+            elif 'months' in param:
+                return list(filter(lambda product: product[param] is True, products))
+            else:
+                return list(filter(lambda product: float(product[param]) >= float(value), products))
+
+
 @api_view(['GET'])
 def companies(request):
     if request.method == 'GET':
