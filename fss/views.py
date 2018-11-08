@@ -438,6 +438,41 @@ class DepositProduct:
         }
         return custom_product_data
 
+    def set_custom_option_data(self, options):
+        custom_option_data = {
+            'period': set(),
+            'rate_type': set(),
+            'basic_rate': {
+                'months_6': None,
+                'months_12': None,
+                'months_24': None,
+                'months_36': None
+            },
+            'prime_rate': {
+                'months_6': None,
+                'months_12': None,
+                'months_24': None,
+                'months_36': None
+            }
+        }
+        for option in options:
+            custom_option_data['period'].add(int(option['save_trm']))
+            custom_option_data['rate_type'].add(option['intr_rate_type_nm'])
+            rate_type_basic = custom_option_data['basic_rate']
+            rate_type_prime = custom_option_data['prime_rate']
+            self.set_intr_rate(rate_type_basic, rate_type_prime, option)
+
+        custom_option_data['period'] = sorted(custom_option_data['period'])
+        return custom_option_data
+
+    def set_intr_rate(self, rate_type_basic, rate_type_prime, option):
+        period = option['save_trm']
+        basic_rate = option['intr_rate']
+        prime_rate = option['intr_rate2']
+
+        months = '_'.join(['months', period])
+        rate_type_basic[months] = basic_rate
+        rate_type_prime[months] = prime_rate
 
 class DepositProductList(APIView, DepositProduct):
     def get(self, request):
@@ -546,6 +581,47 @@ class DepositProductSearchOption(APIView, DepositProduct):
                 return list(filter(lambda product: product[param] is True, products))
             else:
                 return list(filter(lambda product: float(product[param]) >= float(value), products))
+
+
+class DepositProductDetail(APIView, DepositProduct):
+    def get(self, request, fin_prdt_cd):
+        top_fin_grp_no = request.query_params.get('top_fin_grp_no', '020000')
+        fin_co_no = request.query_params.get('fin_co_no', None)
+
+        products = self.get_products(top_fin_grp_no)
+        params = [
+            ('fin_prdt_cd', fin_prdt_cd),
+            ('fin_co_no', fin_co_no)
+        ]
+        try:
+            for param in params:
+                products = self.product_filter(products, param[0], param[1])
+            product_detail = products[0]
+            custom_options_data = self.set_custom_option_data(product_detail['options'])
+            data = {
+                'product_id': product_detail['fin_prdt_cd'],
+                'product_name': product_detail['fin_prdt_nm'],
+                'bank_id': product_detail['fin_co_no'],
+                'bank_name': product_detail['kor_co_nm'],
+                'bank_logo': 'logo.png',
+                'max_limit': '없음' if product_detail['max_limit'] is None else product_detail['max_limit'],
+                'join_way': product_detail['join_way'],
+                'join_deny': product_detail['join_deny'],
+                'join_member': product_detail['join_member'],
+                'contents_prime_condition': product_detail['spcl_cnd'],
+                'contents_maturity_rate': product_detail['mtrt_int'],
+                'contents_etc': product_detail['etc_note'],
+                'options': custom_options_data
+            }
+            return Response(response_data(True, data))
+        except Exception as e:
+            print(traceback.format_exc())
+
+    def product_filter(self, products, param, value):
+        if value is None:
+            return products
+        else:
+            return list(filter(lambda product: product[param] == value, products))
 
 
 @api_view(['GET'])
