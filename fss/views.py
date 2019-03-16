@@ -240,7 +240,7 @@ class SavingProductSearchOption(APIView, SavingProduct):
         """
         옵션 검색
         """
-        fin_co_no = request.query_params.get('fin_co_no', None)
+        fin_co_nos = request.query_params.getlist('fin_co_no', None)
         intr_rate_type = request.query_params.get('intr_rate_type', None)
         rsrv_type = request.query_params.get('rsrv_type', None)
         save_trm = request.query_params.get('save_trm', None)
@@ -270,7 +270,7 @@ class SavingProductSearchOption(APIView, SavingProduct):
             param_save_trm = 'months_36'
 
         params = [
-            ('bank_id', fin_co_no),
+            ('bank_id', fin_co_nos),
             (param_rate_type, intr_rate_type),
             (param_rsrv_type, rsrv_type),
             (param_save_trm, save_trm),
@@ -291,7 +291,7 @@ class SavingProductSearchOption(APIView, SavingProduct):
             return products
         else:
             if param == 'bank_id':
-                return list(filter(lambda product: product[param] == value, products))
+                return list(filter(lambda product: product[param] in value, products))
             elif 'type' in param:
                 return list(filter(lambda product: product[param] is True, products))
             elif 'months' in param:
