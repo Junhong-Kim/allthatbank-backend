@@ -246,6 +246,7 @@ class SavingProductSearchOption(APIView, SavingProduct):
         save_trm = request.query_params.get('save_trm', None)
         intr_rate = request.query_params.get('intr_rate', 0)
         intr_rate2 = request.query_params.get('intr_rate2', 0)
+        join_deny = request.query_params.get('join_deny', None)
 
         # 금리 유형
         if intr_rate_type == 'S':
@@ -275,7 +276,8 @@ class SavingProductSearchOption(APIView, SavingProduct):
             (param_rsrv_type, rsrv_type),
             (param_save_trm, save_trm),
             ('basic_rate_max', intr_rate),
-            ('prime_rate_max', intr_rate2)
+            ('prime_rate_max', intr_rate2),
+            ('join_deny', join_deny)
         ]
 
         try:
@@ -296,6 +298,8 @@ class SavingProductSearchOption(APIView, SavingProduct):
                 return list(filter(lambda product: product[param] is True, products))
             elif 'months' in param:
                 return list(filter(lambda product: product[param] is True, products))
+            elif param == 'join_deny':
+                return list(filter(lambda product: product[param] == value, products))
             else:
                 return list(filter(lambda product: float(product[param]) >= float(value), products))
 
