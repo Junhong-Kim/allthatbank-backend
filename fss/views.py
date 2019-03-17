@@ -529,11 +529,12 @@ class DepositProductSearchOption(APIView, DepositProduct):
         옵션 검색
         """
         top_fin_grp_no = request.query_params.get('top_fin_grp_no', '020000')
-        fin_co_no = request.query_params.get('fin_co_no', None)
+        fin_co_nos = request.query_params.getlist('fin_co_no', None)
         intr_rate_type = request.query_params.get('intr_rate_type', None)
         save_trm = request.query_params.get('save_trm', None)
         intr_rate = request.query_params.get('intr_rate', 0)
         intr_rate2 = request.query_params.get('intr_rate2', 0)
+        join_deny = request.query_params.get('join_deny', None)
 
         products = self.get_products(top_fin_grp_no)
         custom_products = []
@@ -558,11 +559,12 @@ class DepositProductSearchOption(APIView, DepositProduct):
             param_save_trm = 'months_36'
 
         params = [
-            ('bank_id', fin_co_no),
+            ('bank_id', fin_co_nos),
             (param_rate_type, intr_rate_type),
             (param_save_trm, save_trm),
             ('basic_rate_max', intr_rate),
-            ('prime_rate_max', intr_rate2)
+            ('prime_rate_max', intr_rate2),
+            ('join_deny', join_deny)
         ]
 
         try:
@@ -578,11 +580,13 @@ class DepositProductSearchOption(APIView, DepositProduct):
             return products
         else:
             if param == 'bank_id':
-                return list(filter(lambda product: product[param] == value, products))
+                return list(filter(lambda product: product[param] in value, products))
             elif 'type' in param:
                 return list(filter(lambda product: product[param] is True, products))
             elif 'months' in param:
                 return list(filter(lambda product: product[param] is True, products))
+            elif param == 'join_deny':
+                return list(filter(lambda product: product[param] == value, products))
             else:
                 return list(filter(lambda product: float(product[param]) >= float(value), products))
 
