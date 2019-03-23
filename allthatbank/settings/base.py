@@ -50,7 +50,7 @@ FB_APP_ID = get_secret('FB_APP_ID')
 FB_APP_SECRET = get_secret('FB_APP_SECRET')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-# DEBUG = True
+DEBUG = True
 
 ALLOWED_HOSTS = []
 
@@ -93,7 +93,10 @@ ROOT_URLCONF = 'allthatbank.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [
+            # templates 경로 재지정
+            os.path.join(os.path.dirname(BASE_DIR), 'static'),
+        ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -157,13 +160,7 @@ USE_TZ = False
 # https://docs.djangoproject.com/en/2.0/howto/static-files/
 
 STATIC_URL = '/static/'
-STATIC_ROOT = ''
-
 STATICFILES_DIRS = (
-    os.path.join('static'),
-)
-
-STATICFILES_FINDERS = (
-    'django.contrib.staticfiles.finders.FileSystemFinder',
-    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
-)
+  # static 경로 재지정
+  os.path.join(os.path.dirname(BASE_DIR), 'static'),
+) 
