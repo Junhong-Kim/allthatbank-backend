@@ -50,9 +50,9 @@ FB_APP_ID = get_secret('FB_APP_ID')
 FB_APP_SECRET = get_secret('FB_APP_SECRET')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+# DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
